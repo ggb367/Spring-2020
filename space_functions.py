@@ -6,24 +6,24 @@ from scipy.integrate import ode
 from scipy.optimize import fsolve
 
 
-def orbit_prop(time_series, n, e, t_p):  # propogate an eliptical orbit
+def orbit_prop(time_series, mean_motion, energy, t_p):  # propogate an eliptical orbit
     # allocate memory for anomalies
     E = np.empty(np.size(time_series))
     M = np.empty(np.size(time_series))
-    theta = np.empty(np.size(time_series))
-    e_norm = lg.norm(e)
+    nu = np.empty(np.size(time_series))
+    energy_norm = lg.norm(energy)
     # Helper Functions
     def f(x, m_e):
-        return x - e_norm * np.sin(x) - m_e
+        return x - energy_norm * np.sin(x) - m_e
     def df(x):
-        return 1 - e_norm * np.cos(x)
+        return 1 - energy_norm * np.cos(x)
     # propagate through the time series
     for i in range(np.size(time_series)):
-        M[i] = n*(time_series[i]-t_p)  # mean anomaly for this time step
+        M[i] = mean_motion*(time_series[i]-t_p)  # mean anomaly for this time step
         if M[i] < m.pi:  # inital guess based on mean anomaly
-            guess = M[i]+e_norm/2
+            guess = M[i]+energy_norm/2
         else:
-            guess = M[i]-e_norm/2
+            guess = M[i]-energy_norm/2
         it = 0
         error = 100.0
         while error > 10**-10 and it <= 50:  # newton raphson to find eccentric anomaly
@@ -31,28 +31,28 @@ def orbit_prop(time_series, n, e, t_p):  # propogate an eliptical orbit
             error = np.abs((E[i]-guess)/E[i])
             guess = E[i]
             it = it+1
-        theta[i] = 2*m.atan2(np.sqrt(1+e_norm)*np.tan(E[i]/2), np.sqrt(1-e_norm))  # find anomaly from eccentric anomaly
-    return theta, E, M
+        nu[i] = 2*m.atan2(np.sqrt(1+energy_norm)*np.tan(E[i]/2), np.sqrt(1-energy_norm))  # find anomaly from eccentric anomaly
+    return nu, E, M
 
 
 def hyper_orbit_prop(time_series, n, e, t_p):  # propogate a hyperbolic orbit
     # allocate memory for anomalies
     F = np.empty(np.size(time_series))
     M = np.empty(np.size(time_series))
-    theta = np.empty(np.size(time_series))
-    e_norm = lg.norm(e)
+    nu = np.empty(np.size(time_series))
+    energy_norm = lg.norm(e)
     # Helper Functions
     def f(x, m_h):
-        return -x+e_norm*np.sinh(x)-m_h
+        return -x+energy_norm*np.sinh(x)-m_h
     def df(x):
-        return -1+e_norm*np.cosh(x)
+        return -1+energy_norm*np.cosh(x)
     # propagate through the time series
     for i in range(np.size(time_series)):
         M[i] = n*(time_series[i]-t_p)  # mean anomaly for this time step
         if M[i] < m.pi:  # inital guess based on mean anomaly
-            guess = M[i]+e_norm/2
+            guess = M[i]+energy_norm/2
         else:
-            guess = M[i]-e_norm/2
+            guess = M[i]-energy_norm/2
         it = 0
         error = 100.0
         while error > 10**-10 and it <= 50:  # newton raphson to find eccentric anomaly
@@ -60,16 +60,16 @@ def hyper_orbit_prop(time_series, n, e, t_p):  # propogate a hyperbolic orbit
             error = np.abs((F[i]-guess)/F[i])
             guess = F[i]
             it = it+1
-        theta[i] = 2*m.atan2(np.sqrt(e_norm+1)*np.tanh(F[i]/2), np.sqrt(e_norm-1))  # find anomaly from eccentric anomaly
-    return theta, F, M
+        nu[i] = 2*m.atan2(np.sqrt(energy_norm+1)*np.tanh(F[i]/2), np.sqrt(energy_norm-1))  # find anomaly from eccentric anomaly
+    return nu, F, M
 
 
 def cart2elm(r, v, mu, deg=True):  # transform position and velocity to classical orbital elements
     h = np.cross(r, v)
     r_norm = lg.norm(r)
     v_norm = lg.norm(v)
-    e = np.cross(v, h) / mu - np.divide(r, r_norm)  # eccentricity
-    e_norm = lg.norm(e)
+    energy = np.cross(v, h) / mu - np.divide(r, r_norm)  # eccentricity
+    energy_norm = lg.norm(energy)
     energy = (v_norm**2)/2 - mu/r_norm
     h_norm = lg.norm(h)
     k = (h_norm ** 2) / (r_norm * mu) - 1
@@ -82,50 +82,50 @@ def cart2elm(r, v, mu, deg=True):  # transform position and velocity to classica
     i = np.arccos(np.dot(h, [0, 0, 1])/h_norm)
     n = np.cross([0, 0, 1], h)
     n_norm = lg.norm(n)
-    if e_norm < 10e-12 or e_norm > 10e-12:
-        theta = np.arccos(k/e_norm)
+    if energy_norm < 10e-12 or energy_norm > 10e-12:
+        nu = np.arccos(k/energy_norm)
         if np.dot(r,v)<0:
-            theta = 2*m.pi-theta
+            nu = 2*m.pi-nu
         RAAN = np.arccos(np.dot(n, [1, 0, 0])/n_norm)
-        omega = np.arccos(np.dot(n, e)/(e_norm*n_norm))
-    if e_norm < 10e-12 and i < 10e-12:
+        omega = np.arccos(np.dot(n, e)/(energy_norm*n_norm))
+    if energy_norm < 10e-12 and i < 10e-12:
         RAAN = 0
         omega = 0
-        theta = np.arccos(r[1]/r_norm)
+        nu = np.arccos(r[1]/r_norm)
         if r[1] < 0:
-            theta = 2*m.pi-theta
-    elif e_norm < 10e-12:
+            nu = 2*m.pi-nu
+    elif energy_norm < 10e-12:
         omega = 0
         RAAN = np.arccos(np.dot(n, [1, 0, 0]) / n_norm)
-        theta = np.arccos(np.dot((n/n_norm),r)/r_norm)
+        nu = np.arccos(np.dot((n/n_norm),r)/r_norm)
         if r[2]< 0:
-            theta = 2*m.pi-theta
+            nu = 2*m.pi-nu
     elif i < 10e-12:
         RAAN = 0
-        omega = np.arccos(np.dot(e, [1, 0, 0])/e_norm)
+        omega = np.arccos(np.dot(e, [1, 0, 0])/energy_norm)
         if e[1]< 0:
             omega = 2*m.pi-omega
     if deg:
-        theta = 180*theta/m.pi
+        nu = 180*nu/m.pi
         i = 180*i/m.pi
         RAAN = 180*RAAN/m.pi
         omega = 180*omega/m.pi
-    E = [a, e_norm, i, RAAN, omega, theta]
+    E = [a, energy_norm, i, RAAN, omega, nu]
     return E
 
 
 def elm2cart(E, mu, deg=True):  # transform classical orbital elements to cartesian position and velocity
-    # E - [a, e, i, RAAN, omega, theta]
+    # E - [a, e, i, RAAN, omega, nu]
     a = E[0]
     e = E[1]
     if deg:
         i = m.pi * E[2] / 180
         RAAN = m.pi * E[3] / 180
         omega = m.pi * E[4] / 180
-        theta = m.pi * E[5] / 180
+        nu = m.pi * E[5] / 180
     p = a*(1 - e**2)
-    r_pqw = np.array([(p/(1+e*np.cos(theta)))*np.cos(theta), (p/(1+e*np.cos(theta)))*np.sin(theta), 0])
-    v_pqw = np.array([np.sqrt(mu/p)*(-np.sin(theta)), np.sqrt(mu/p)*(e+np.cos(theta)), 0])
+    r_pqw = np.array([(p/(1+e*np.cos(nu)))*np.cos(nu), (p/(1+e*np.cos(nu)))*np.sin(nu), 0])
+    v_pqw = np.array([np.sqrt(mu/p)*(-np.sin(nu)), np.sqrt(mu/p)*(e+np.cos(nu)), 0])
     # R_3(-RAAN)R_1(-i)R_3(-omega)
     c1 = np.cos(-omega)
     c2 = np.cos(-i)
