@@ -6,7 +6,7 @@ from scipy.integrate import ode
 from scipy.optimize import fsolve
 
 
-def orbit_prop(time_series, mean_motion, eccent, t_p):  # propogate an eliptical orbit
+def orbit_prop(time_series, mean_motion, eccent, time_periapsis):  # propogate an eliptical orbit
     # allocate memory for anomalies
     E = np.empty(np.size(time_series))
     M = np.empty(np.size(time_series))
@@ -19,7 +19,7 @@ def orbit_prop(time_series, mean_motion, eccent, t_p):  # propogate an eliptical
         return 1 - eccent_norm * np.cos(x)
     # propagate through the time series
     for i in range(np.size(time_series)):
-        M[i] = mean_motion*(time_series[i]-t_p)  # mean anomaly for this time step
+        M[i] = mean_motion*(time_series[i]-time_periapsis)  # mean anomaly for this time step
         if M[i] < m.pi:  # inital guess based on mean anomaly
             guess = M[i]+eccent_norm/2
         else:
@@ -27,24 +27,24 @@ def orbit_prop(time_series, mean_motion, eccent, t_p):  # propogate an eliptical
         it = 0
         error = 100.0
         while error > 10**-10 and it <= 50:  # newton raphson to find eccentric anomaly
-            try:
+            # try:
                 E[i] = guess-f(guess, M[i])/df(guess)
                 error = np.abs((E[i]-guess)/E[i])
                 guess = E[i]
                 it = it+1
-            except(ZeroDivisionError, RuntimeWarning, RuntimeError):
-                print(E[i])
-                print("Zero Division error")
+            # except(ZeroDivisionError, RuntimeWarning, RuntimeError):
+            #     print(E[i])
+            #     print("Zero Division error")
         nu[i] = 2*m.atan2(np.sqrt(1+eccent_norm)*np.tan(E[i]/2), np.sqrt(1-eccent_norm))  # find anomaly from eccentric anomaly
     return nu, E, M
 
 
-def hyper_orbit_prop(time_series, n, e, t_p):  # propogate a hyperbolic orbit
+def hyper_orbit_prop(time_series, mean_motion, eccent, time_periapsis):  # propogate a hyperbolic orbit
     # allocate memory for anomalies
     F = np.empty(np.size(time_series))
     M = np.empty(np.size(time_series))
     nu = np.empty(np.size(time_series))
-    eccent_norm = lg.norm(e)
+    eccent_norm = lg.norm(eccent)
     # Helper Functions
     def f(x, m_h):
         return -x+eccent_norm*np.sinh(x)-m_h
@@ -52,7 +52,7 @@ def hyper_orbit_prop(time_series, n, e, t_p):  # propogate a hyperbolic orbit
         return -1+eccent_norm*np.cosh(x)
     # propagate through the time series
     for i in range(np.size(time_series)):
-        M[i] = n*(time_series[i]-t_p)  # mean anomaly for this time step
+        M[i] = mean_motion*(time_series[i]-time_periapsis)  # mean anomaly for this time step
         if M[i] < m.pi:  # inital guess based on mean anomaly
             guess = M[i]+eccent_norm/2
         else:
@@ -265,3 +265,6 @@ def lagrange(mu):  # returns a 2x5 vector of lagrange points given mu
     roots_y = np.array([0, 0, 0, np.sqrt(3) / 2, -np.sqrt(3) / 2])
     points = np.column_stack((roots_x, roots_y))
     return points
+
+def rad2deg(x):
+    return x*180/m.pi
