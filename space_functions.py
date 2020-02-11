@@ -268,3 +268,23 @@ def lagrange(mu):  # returns a 2x5 vector of lagrange points given mu
 
 def rad2deg(x):
     return x*180/m.pi
+
+def Date2JD(year, month, day, hour, minute, second):
+    return 367*year-np.floor((7*(year+np.floor((month+9)/12)))/4)+np.floor(275*month/9)+day+1721013.5+(1/24)*(hour+(1/60)*(minute+second/60))
+
+def JD2MJD(JD):
+    return JD - 2400000.5
+
+def JD2DOY(JulianDate):
+    T_1900 = (JulianDate-2415019.5)/365.25
+    year = 1900+np.trunc(T_1900)
+    LeapYears = np.trunc((year-1901)*.25)
+    Days = (JulianDate-2415019.5)-((year-1900)*365+LeapYears)
+    if Days < 1.0:
+        year = year-1
+        LeapYears = np.trunc((year-1901)*25)
+        Days = (JulianDate- 2415019.5)-((year-1900)*365+LeapYears)
+    return np.trunc(Days)
+
+def time2radians(hour, minute, seconds):
+    return 15*(hour+minute/60+seconds/3600)*np.pi/180
