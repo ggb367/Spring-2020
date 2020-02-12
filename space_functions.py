@@ -288,3 +288,5 @@ def JD2DOY(JulianDate):
 
 def time2radians(hour, minute, seconds):
     return 15*(hour+minute/60+seconds/3600)*np.pi/180
+
+# def time_converter(from_type, to_type, )
