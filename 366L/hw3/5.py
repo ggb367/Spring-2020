@@ -19,6 +19,7 @@ r_a_f, v_a_f = sf.orbit_prop_rk(r_a, v_a, 0, time_diff, 0.001)
 r_b = [1715.7, 18671.5, -3713.7]
 v_b = [-4.54600, 0.446796, 0.088875]
 
-
+print(r_a_f[-1, :])
+print(v_a_f[-1, :])
 print(r_a_f[-1, :]-r_b)
 
