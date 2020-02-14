@@ -154,14 +154,16 @@ def R2(phi): # returns R2 transform matrix
 def R3(phi):  # returns R3 transform matrix
     return np.array([np.array([np.cos(phi), np.sin(phi), 0]), np.array([-np.sin(phi), np.cos(phi), 0]), np.array([0, 0, 1])])
 
-def deg2rad(degree, minutes=0, seconds=0, vector=False):  # transform an array of degrees to radians
-    if vector:
+def deg2rad(degree, minutes=0, seconds=0):  # transform an array of degrees to radians
+    if isinstance(degree, int) or isinstance(degree, float):
+        return (degree+minutes/60+seconds/3600)*np.pi/180
+    elif isinstance(degree, list) or isinstance(degree, np.ndarray):
         output = np.empty(np.size(input))
         for i in range(np.size(input)):
-            output[i] = input[i]*np.pi/180
+            output[i] = input[i] * np.pi / 180
         return output
-    if (not vector) and (isinstance(degree, int) or isinstance(degree, float)):
-        return (degree+minutes/60+seconds/3600)*np.pi/180
+    else:
+        raise TypeError("degree must be a int, float, list, or ndarray, you used a %s", str(type(degree)))
 
 def orbit_prop_rk(r_0, v_0, T0, tF, dT):  # propogate an orbit about Earth using Runge-Kutta Method
     def two_body_orbit(t, Y, mu):
@@ -296,17 +298,14 @@ def JD2ERA(JulianDate):
     return np.mod(2*np.pi*(0.779057273264+1.00273781191135448*(JulianDate-2451545)), 2*np.pi)
 
 def polarMotion(x_p, y_p, s_prime):
-    return np.matmul(np.matmul(R3(-s_prime), R2(x_p)),R1(y_p))
+    return np.matmul(R3(-s_prime), np.matmul(R2(x_p),R1(y_p)))
 
 def JulianCenturies(JulianDate):
     return (JulianDate-2451545)/36525
 
 def s_prime(centuries_tt):
-    return deg2rad(0, seconds=-0.000047) * centuries_tt
+    return deg2rad(0, seconds=-0.000047 * centuries_tt)
+
 def precession_nutation(X, Y, s):
-    a = 0.5+0.125*(X**2+Y**2)
-    lhs = np.array([[1-a*X**2, -a*X*Y, X], [-a*X*Y, 1-a*Y**2, Y], [-X, -Y, 1-a*(X**2+Y**2)]])
-    return np.matmul(lhs, R3(s))
-
-
-# def time_converter(from_type, to_type, )
+    a = (0.5+0.125*(X**2+Y**2))
+    return np.matmul(np.array([[1-a*X**2, -a*X*Y, X], [-a*X*Y, 1-a*Y**2, Y], [-X, -Y, 1-a*(X**2+Y**2)]]), R3(s))

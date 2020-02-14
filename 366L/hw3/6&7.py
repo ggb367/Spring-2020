@@ -2,7 +2,7 @@ from skyfield.api import load
 import numpy as np
 import space_functions as sf
 
-x_p = sf.deg2rad(0, seconds=0.41075)
+x_p = sf.deg2rad(0, seconds=0.041075)
 y_p = sf.deg2rad(0, seconds=0.3378)
 delta_ut1 = -0.200316
 dX = sf.deg2rad(0, seconds=0.000146)
@@ -16,7 +16,7 @@ ts = load.timescale()
 time_utc = ts.utc(2020, 2, 14, 21)
 time_jd_ut1 = time_utc.ut1
 time_jd_tt = time_utc.tt
-s_prime = sf.s_prime(time_jd_tt)
+s_prime = sf.s_prime(sf.JulianCenturies(time_jd_tt))
 theta_ERA = sf.JD2ERA(time_jd_ut1)
 print(time_jd_ut1)
 print(theta_ERA*180/np.pi)
@@ -33,7 +33,7 @@ print(Q)
 
 r_itrf = [-742.845, -5463.244, 3196.066]
 
-r_gcrf_error = np.matmul(R, r_itrf)
+r_gcrf_error = np.matmul(sf.R3(-99.6026*np.pi/180), r_itrf)
 print(r_gcrf_error)
 r_gcrf_true = np.matmul(Q, r_itrf)
 print(r_gcrf_true)
