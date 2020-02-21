@@ -23,8 +23,12 @@ for dist in r:
         print(e)
     i = i + 1
 
-fig, ax = plt.subplots(2)
-ax[0].plot(r, a_sun)
-ax[1].plot(r, a_moon)
+plt.figure()
+plt.plot(r, a_sun)
+plt.plot(r, a_moon)
+plt.title("Accelerations from the Sun and the Moon on a Satelite")
+plt.legend(["Sun", "Moon"])
+plt.xlabel("Distance from Earth [km]")
+plt.ylabel("Acceleration [m/s]")
 
 plt.show()
