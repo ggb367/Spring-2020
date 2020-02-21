@@ -4,6 +4,17 @@ import numpy as np
 import numpy.linalg as lg
 from scipy.integrate import ode
 from scipy.optimize import fsolve
+import warnings
+
+
+class earth:
+    mu = 398600.4418
+
+class sun:
+    mu = 1.32712440042e11
+
+class moon:
+    mu = 4902.8695
 
 
 def orbit_prop(time_series, mean_motion, eccent, time_periapsis):  # propogate an eliptical orbit
@@ -74,15 +85,15 @@ def cart2elm(r, v, mu, deg=True):  # transform position and velocity to classica
     v_norm = lg.norm(v)
     eccent = np.cross(v, h) / mu - np.divide(r, r_norm)  # eccentricity
     eccent_norm = lg.norm(eccent)
-    eccent = (v_norm**2)/2 - mu/r_norm
+    energy = (v_norm**2)/2 - mu/r_norm
     h_norm = lg.norm(h)
     k = (h_norm ** 2) / (r_norm * mu) - 1
-    if eccent < 0:
-        a = -mu/(2*eccent)
-    elif -10e-12 < eccent < 10e-12:
+    if energy < 0:
+        a = -mu/(2*energy)
+    elif -10e-12 < energy < 10e-12:
         a = m.inf
     else:
-        a = mu/(2*eccent)
+        a = mu/(2*energy)
     i = np.arccos(np.dot(h, [0, 0, 1])/h_norm)
     n = np.cross([0, 0, 1], h)
     n_norm = lg.norm(n)
@@ -91,7 +102,7 @@ def cart2elm(r, v, mu, deg=True):  # transform position and velocity to classica
         if np.dot(r,v)<0:
             nu = 2*m.pi-nu
         RAAN = np.arccos(np.dot(n, [1, 0, 0])/n_norm)
-        omega = np.arccos(np.dot(n, e)/(eccent_norm*n_norm))
+        omega = np.arccos(np.dot(n, eccent)/(eccent_norm*n_norm))
     if eccent_norm < 10e-12 and i < 10e-12:
         RAAN = 0
         omega = 0
@@ -106,7 +117,7 @@ def cart2elm(r, v, mu, deg=True):  # transform position and velocity to classica
             nu = 2*m.pi-nu
     elif i < 10e-12:
         RAAN = 0
-        omega = np.arccos(np.dot(e, [1, 0, 0])/eccent_norm)
+        omega = np.arccos(np.dot(eccent, [1, 0, 0])/eccent_norm)
         if e[1]< 0:
             omega = 2*m.pi-omega
     if deg:
@@ -115,7 +126,11 @@ def cart2elm(r, v, mu, deg=True):  # transform position and velocity to classica
         RAAN = 180*RAAN/m.pi
         omega = 180*omega/m.pi
     E = [a, eccent_norm, i, RAAN, omega, nu]
-    return E
+    for element in E:
+        if not isinstance(element, float):
+            print(E)
+            raise TypeError("One of the elements is not a float!")
+    return np.array(E)
 
 
 def elm2cart(E, mu, deg=True):  # transform classical orbital elements to cartesian position and velocity
@@ -201,10 +216,10 @@ def orbit_prop_rk(r_0, v_0, T0, tF, dT):  # propogate an orbit about Earth using
     output = np.array(output)
     t = output[:, 0]
 
-    r_vec = np.empty([np.shape(output)[0], 3])
-    v_vec = np.empty([np.shape(output)[0], 3])
+    r_vec = np.empty([np.shape(output)[0]-1, 3])
+    v_vec = np.empty([np.shape(output)[0]-1, 3])
 
-    for i in range(np.shape(output)[0]):
+    for i in range(np.shape(output)[0]-1):
         r_vec[i, 0] = output[i, 1]
         r_vec[i, 1] = output[i, 2]
         r_vec[i, 2] = output[i, 3]
@@ -303,9 +318,95 @@ def polarMotion(x_p, y_p, s_prime):
 def JulianCenturies(JulianDate):
     return (JulianDate-2451545)/36525
 
+def MJDCenturies(MJD):
+    return (MJD-51544.5)/36525
+
 def s_prime(centuries_tt):
     return deg2rad(0, seconds=-0.000047 * centuries_tt)
 
 def precession_nutation(X, Y, s):
     a = (0.5+0.125*(X**2+Y**2))
     return np.matmul(np.array([[1-a*X**2, -a*X*Y, X], [-a*X*Y, 1-a*Y**2, Y], [-X, -Y, 1-a*(X**2+Y**2)]]), R3(s))
+
+def sun_pos(JulianDate, AU=False):
+    JulianDate = JulianDate-2400000.5
+    T = MJDCenturies(JulianDate)
+    longitude_sun = deg2rad(280.46+36000.771*T)
+    M = deg2rad(357.52772333 + 35999.0534*T)
+    longitude_ecliptic = longitude_sun + np.deg2rad(1.914666471*np.sin(M)+0.019994643*np.sin(2*M))
+    radius = 1.000140612-0.016708617*np.cos(M) - 0.000139589*np.cos(2*M)
+    ecliptic = deg2rad(23.439291-0.0130042*T)
+    # print([T, longitude_sun, M, longitude_ecliptic, radius, ecliptic])
+    if AU:
+        return np.array([radius*np.cos(longitude_ecliptic), radius*np.cos(ecliptic)*np.sin(longitude_ecliptic), radius*np.sin(ecliptic)*np.sin(longitude_ecliptic)])
+    else:
+        return np.multiply(np.array([radius*np.cos(longitude_ecliptic), radius*np.cos(ecliptic)*np.sin(longitude_ecliptic), radius*np.sin(ecliptic)*np.sin(longitude_ecliptic)]),149597870)
+
+def MOD2GCRF(Julian_Date):
+    Julian_Date = Julian_Date-2400000.5
+    JCTT = MJDCenturies(Julian_Date)
+    zeta = deg2rad(0, seconds=2306.2181*JCTT+0.30188*JCTT**2+0.017998*JCTT**3)
+    theta = deg2rad(0, seconds=2004.3109*JCTT-0.42665*JCTT**2-0.041833*JCTT**3)
+    z = deg2rad(0, seconds=2306.2181*JCTT+1.09468*JCTT**2+0.018203*JCTT**3)
+    return np.matmul(R3(zeta),np.matmul(R2(-theta), R3(z)))
+
+def J20002GCRF():
+    delta = deg2rad(0, seconds=0.0146)
+    zeta = deg2rad(0, seconds=-0.16617)
+    eta = deg2rad(0, seconds=-0.0068192)
+    return np.matmul(R3(-delta),np.matmul(R2(-zeta), R1(eta)))
+
+def orbit_prop_3body(r_0, v_0, T0, tF, dT):
+
+    def three_body_orbit(t, Y, mu):
+        dY = np.empty([6, 1])
+        dY[0] = Y[3]
+        dY[1] = Y[4]
+        dY[2] = Y[5]
+        r = lg.norm(Y[0:3])
+        t = t/86400+2451545
+        sun_range = np.matmul(MOD2GCRF(t),sun_pos(t))
+        sat2sun = sun_range - Y[0:3]
+        sat2sun_norm = lg.norm(sat2sun)
+        sun_range_norm = lg.norm(sun_range)
+        dY[3] = (-mu * Y[0] / r ** 3) + sun.mu*(sat2sun[0]/((sat2sun_norm)**3)-sun_range[0]/sun_range_norm**3)
+        dY[4] = (-mu * Y[1] / r ** 3) + sun.mu*(sat2sun[1]/((sat2sun_norm)**3)-sun_range[1]/sun_range_norm**3)
+        dY[5] = (-mu * Y[2] / r ** 3) + sun.mu*(sat2sun[2]/((sat2sun_norm)**3)-sun_range[2]/sun_range_norm**3)
+        return dY
+
+
+    def derivFcn(t, y):
+        return three_body_orbit(t, y, earth.mu)
+
+    Y_0 = np.concatenate([r_0, v_0], axis=0)
+    rv = ode(derivFcn)
+
+    #  The integrator type 'dopri5' is the same as MATLAB's ode45()!
+    #  rtol and atol are the relative and absolute tolerances, respectively
+    rv.set_integrator('dopri5', rtol=1e-10, atol=1e-20)
+    rv.set_initial_value(Y_0, T0)
+    output = []
+    output.append(np.insert(Y_0, 0, T0))
+
+    # Run the integrator and populate output array with positions and velocities
+    while rv.successful() and rv.t < tF:  # rv.successful() and
+        rv.integrate(rv.t + dT)
+        output.append(np.insert(rv.y, 0, rv.t))
+
+    if not rv.successful() and rv.t<tF:
+        warnings.warn("Runge Kutta Failed!", RuntimeWarning)
+    #  Convert the output a numpy array for later use
+    output = np.array(output)
+    t = output[:, 0]
+
+    r_vec = np.empty([np.shape(output)[0]-1, 3])
+    v_vec = np.empty([np.shape(output)[0]-1, 3])
+
+    for i in range(np.shape(output)[0]-1):
+        r_vec[i, 0] = output[i, 1]
+        r_vec[i, 1] = output[i, 2]
+        r_vec[i, 2] = output[i, 3]
+        v_vec[i, 0] = output[i, 4]
+        v_vec[i, 1] = output[i, 5]
+        v_vec[i, 2] = output[i, 6]
+    return r_vec, v_vec

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # part_1 = pd.read_excel('lab_2_data/Part1.xlsx')
 # num_23_ab = pd.read_excel('lab_2_data/2_3_ab.xlsx')
@@ -20,6 +21,8 @@ time_array = np.array((time_array-time_array[0])*86400) #Normalization to second
 
 thermocouple = np.array(num_23_c["Thermocouple"])
 thermistor = np.array(num_23_c["Thermistor"])
+r_t = np.divide(np.multiply(1500, thermistor), 5-thermistor)
+T = np.power(a+np.multiply(b, np.log(r_t))+np.multiply(c, np.power(np.log(r_t), 3)), -1)
 
 #plot data
 plt.figure()
@@ -28,6 +31,9 @@ plt.plot(time_array, thermocouple)
 plt.figure()
 plt.plot(time_array, thermistor)
 
+a = 0.044747
+b = -0.01388
+c = 0.000357
 
 
 # # calculate time constant
