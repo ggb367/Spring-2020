@@ -6,33 +6,42 @@ from scipy.integrate import ode
 from scipy.optimize import fsolve
 import warnings
 
+def AU2km(AU):
+    return AU*149597870
 
 class earth:
     mu = 398600.4418
     semimajor = AU2km(1.000001018)
-    def eccentricty(self, T_TDB, deg=False):
+    def eccentricty(T_TDB, deg=False):
         if deg:
             return 0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3
         else:
             return np.deg2rad(0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3)
-    def inclination(self, T_TDB, deg=False):
+    def inclination(T_TDB, deg=False):
         if deg:
             return 0+0.0130546*T_TDB-0.00000931*T_TDB**2-0.000000034*T_TDB**3
         else:
             return np.deg2rad(0+0.0130546*T_TDB-0.00000931*T_TDB**2-0.000000034*T_TDB**3)
-    def RAAN(self, T_TDB, deg=False):
+    def RAAN(T_TDB, deg=False):
         if deg:
             return 174.873174-0.2410908*T_TDB+0.00004067*T_TDB**2-0.000001327*T_TDB**3
         else:
             return np.deg2rad(174.873174-0.2410908*T_TDB+0.00004067*T_TDB**2-0.000001327*T_TDB**3)
-    def ARG_PERIHELION(self, T_TDB, deg=False):
+    def ARG_PERIHELION(T_TDB, deg=False):
         if deg:
             return 102.937348+0.3225557*T_TDB+0.00015026*T_TDB**2+0.000000478*T_TDB**3
         else:
             return np.deg2rad(102.937348+0.3225557*T_TDB+0.00015026*T_TDB**2+0.000000478*T_TDB**3)
-    def Mean_Long(self, T_TDB, deg=False):
+    def Mean_Long(T_TDB, deg=False):
         if deg:
             return 100.466449+35999.3728519*T_TDB-0.00000568*T_TDB**2
+        else:
+            return np.deg2rad(100.466449+35999.3728519*T_TDB-0.00000568*T_TDB**2)
+    def obliquity(T_TT, deg=False):
+        if deg:
+            return 23.439279-0.0130102*T_TT-5.086e-8*T_TT**2+5.565e-7*T_TT**3+1.6e-10*T_TT**4+1.21e-11*T_TT**5
+        else:
+            return  np.deg2rad(23.439279-0.0130102*T_TT-5.086e-8*T_TT**2+5.565e-7*T_TT**3+1.6e-10*T_TT**4+1.21e-11*T_TT**5)
 
 
 class sun:
@@ -167,6 +176,11 @@ def elm2cart(E, mu, deg=True):  # transform classical orbital elements to cartes
         RAAN = m.pi * E[3] / 180
         omega = m.pi * E[4] / 180
         nu = m.pi * E[5] / 180
+    else:
+        i = E[2]
+        RAAN = E[3]
+        omega = E[4]
+        nu = E[5]
     p = a*(1 - e**2)
     r_pqw = np.array([(p/(1+e*np.cos(nu)))*np.cos(nu), (p/(1+e*np.cos(nu)))*np.sin(nu), 0])
     v_pqw = np.array([np.sqrt(mu/p)*(-np.sin(nu)), np.sqrt(mu/p)*(e+np.cos(nu)), 0])
@@ -436,9 +450,6 @@ def orbit_prop_3body(r_0, v_0, T0, tF, dT):
         v_vec[i, 2] = output[i, 6]
     return r_vec, v_vec
 
-def AU2km(AU):
-    return AU*149597870
-
 def KepEqtnE(M, e):
     if -np.pi < M < 0 or M>np.pi:
         E = M-e
@@ -460,7 +471,9 @@ def PlanetRV(JD_TDB, MJD=False):
     T_TDB = MJDCenturies(JD_TDB)
     M = earth.Mean_Long(T_TDB) - earth.ARG_PERIHELION(T_TDB)
     arg_perihelion = earth.ARG_PERIHELION(T_TDB) - earth.RAAN(T_TDB)
-    nu = KepEqtnE(M, earth.eccentricty(T_TDB))
+    loc = KepEqtnE(M, earth.eccentricty(T_TDB))
     # elements - a e i RAAN arg peri nu
-    r, v = elm2cart([earth.semimajor, earth.eccentricty(T_TDB), earth.inclination(T_TDB), earth.RAAN(T_TDB), earth.ARG_PERIHELION(T_TDB), nu], sun.mu)
-
+    r, v = elm2cart([earth.semimajor, earth.eccentricty(T_TDB), earth.inclination(T_TDB), earth.RAAN(T_TDB), arg_perihelion, loc], sun.mu, deg=False)
+    r = np.matmul(R1(earth.obliquity(T_TDB)), r)
+    v = np.matmul(R1(earth.obliquity(T_TDB)), v)
+    return  r, v
