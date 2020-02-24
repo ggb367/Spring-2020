@@ -1,6 +1,4 @@
 import numpy as np
-import space_functions as sf
-from skyfield.api import load
 from matplotlib import pyplot as plt
 
 class moon:

@@ -9,6 +9,31 @@ import warnings
 
 class earth:
     mu = 398600.4418
+    semimajor = AU2km(1.000001018)
+    def eccentricty(self, T_TDB, deg=False):
+        if deg:
+            return 0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3
+        else:
+            return np.deg2rad(0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3)
+    def inclination(self, T_TDB, deg=False):
+        if deg:
+            return 0+0.0130546*T_TDB-0.00000931*T_TDB**2-0.000000034*T_TDB**3
+        else:
+            return np.deg2rad(0+0.0130546*T_TDB-0.00000931*T_TDB**2-0.000000034*T_TDB**3)
+    def RAAN(self, T_TDB, deg=False):
+        if deg:
+            return 174.873174-0.2410908*T_TDB+0.00004067*T_TDB**2-0.000001327*T_TDB**3
+        else:
+            return np.deg2rad(174.873174-0.2410908*T_TDB+0.00004067*T_TDB**2-0.000001327*T_TDB**3)
+    def ARG_PERIHELION(self, T_TDB, deg=False):
+        if deg:
+            return 102.937348+0.3225557*T_TDB+0.00015026*T_TDB**2+0.000000478*T_TDB**3
+        else:
+            return np.deg2rad(102.937348+0.3225557*T_TDB+0.00015026*T_TDB**2+0.000000478*T_TDB**3)
+    def Mean_Long(self, T_TDB, deg=False):
+        if deg:
+            return 100.466449+35999.3728519*T_TDB-0.00000568*T_TDB**2
+
 
 class sun:
     mu = 1.32712440042e11
@@ -410,3 +435,32 @@ def orbit_prop_3body(r_0, v_0, T0, tF, dT):
         v_vec[i, 1] = output[i, 5]
         v_vec[i, 2] = output[i, 6]
     return r_vec, v_vec
+
+def AU2km(AU):
+    return AU*149597870
+
+def KepEqtnE(M, e):
+    if -np.pi < M < 0 or M>np.pi:
+        E = M-e
+    else:
+        E = M+e
+    E_old = E
+    count = 0
+    while(count<10e5):
+        E = E_old+(M-E_old+e*np.sin(E_old))/(1-e*np.cos(E_old))
+        if E - E_old < 10e-15:
+            break
+        else:
+            count = count+1
+    return  E
+
+def PlanetRV(JD_TDB, MJD=False):
+    if not MJD:
+        JD_TDB = JD_TDB - 2400000.5
+    T_TDB = MJDCenturies(JD_TDB)
+    M = earth.Mean_Long(T_TDB) - earth.ARG_PERIHELION(T_TDB)
+    arg_perihelion = earth.ARG_PERIHELION(T_TDB) - earth.RAAN(T_TDB)
+    nu = KepEqtnE(M, earth.eccentricty(T_TDB))
+    # elements - a e i RAAN arg peri nu
+    r, v = elm2cart([earth.semimajor, earth.eccentricty(T_TDB), earth.inclination(T_TDB), earth.RAAN(T_TDB), earth.ARG_PERIHELION(T_TDB), nu], sun.mu)
+
