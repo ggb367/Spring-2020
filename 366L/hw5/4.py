@@ -23,7 +23,7 @@ for i in range(np.shape(r_vec)[0]):
 
 print(np.shape(elements))
 fig, ax = plt.subplots(5, sharex=True)
-elementals=["a[km]", "e[deg]", "i[deg]", "RAAN[deg]", "Arg Periapsis [deg]"]
+elementals=["a[km]", "e", "i[deg]", "RAAN[deg]", "Arg Periapsis [deg]"]
 try:
     for j in range(np.size(ax)):
         ax[j].plot(time_series, elements[:, j])
