@@ -468,13 +468,15 @@ def PlanetRV(JD_TDB, MJD=False):
         JD_TDB = JD_TDB - 2400000.5
     T_TDB = MJDCenturies(JD_TDB)
     M = earth.Mean_Long(T_TDB) - earth.ARG_PERIHELION(T_TDB)
-    arg_periapsis = earth.ARG_PERIHELION(T_TDB) - earth.RAAN(T_TDB)
-    nu = KepEqtnE(M, earth.eccentricty(T_TDB))
+    arg_periapsis = (earth.ARG_PERIHELION(T_TDB) - earth.RAAN(T_TDB))
+    eccentric_anomaly = KepEqtnE(M, earth.eccentricty(T_TDB))
     # elements - a e i RAAN arg peri nu
+    nu = 2 * m.atan2(np.sqrt(1 + earth.eccentricty(T_TDB)) * np.tan(eccentric_anomaly / 2), np.sqrt(1 - earth.eccentricty(T_TDB)))
     r, v = elm2cart([earth.semimajor, earth.eccentricty(T_TDB), earth.inclination(T_TDB), earth.RAAN(T_TDB), arg_periapsis, nu], sun.mu, deg=False)
     r = np.matmul(R1(-earth.obliquity(T_TDB)), r)
     v = np.matmul(R1(-earth.obliquity(T_TDB)), v)
     return  r, v
+
 def orbit_prop_3body_RV(r_0, v_0, T0, tF, dT):
 
     def three_body_orbit(t, Y, mu):
@@ -485,6 +487,7 @@ def orbit_prop_3body_RV(r_0, v_0, T0, tF, dT):
         r = lg.norm(Y[0:3])
         t = t/86400+2451545
         sun_range, _ = PlanetRV(t)
+        sun_range = np.multiply(sun_range, -1)
         sat2sun = sun_range - Y[0:3]
         sat2sun_norm = lg.norm(sat2sun)
         sun_range_norm = lg.norm(sun_range)
