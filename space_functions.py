@@ -7,16 +7,14 @@ from scipy.optimize import fsolve
 import warnings
 
 def AU2km(AU):
-    return AU*149597870
+    return AU*149597870.7
 
 class earth:
     mu = 398600.4418
     semimajor = AU2km(1.000001018)
-    def eccentricty(T_TDB, deg=False):
-        if deg:
-            return 0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3
-        else:
-            return np.deg2rad(0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3)
+    def eccentricty(T_TDB):
+        return 0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3
+
     def inclination(T_TDB, deg=False):
         if deg:
             return 0+0.0130546*T_TDB-0.00000931*T_TDB**2-0.000000034*T_TDB**3
@@ -374,12 +372,12 @@ def sun_pos(JulianDate, AU=False):
     M = deg2rad(357.52772333 + 35999.0534*T)
     longitude_ecliptic = longitude_sun + np.deg2rad(1.914666471*np.sin(M)+0.019994643*np.sin(2*M))
     radius = 1.000140612-0.016708617*np.cos(M) - 0.000139589*np.cos(2*M)
-    ecliptic = deg2rad(23.439291-0.0130042*T)
+    obliquity = deg2rad(23.439291-0.0130042*T)
     # print([T, longitude_sun, M, longitude_ecliptic, radius, ecliptic])
     if AU:
-        return np.array([radius*np.cos(longitude_ecliptic), radius*np.cos(ecliptic)*np.sin(longitude_ecliptic), radius*np.sin(ecliptic)*np.sin(longitude_ecliptic)])
+        return np.array([radius*np.cos(longitude_ecliptic), radius*np.cos(obliquity)*np.sin(longitude_ecliptic), radius*np.sin(obliquity)*np.sin(longitude_ecliptic)])
     else:
-        return np.multiply(np.array([radius*np.cos(longitude_ecliptic), radius*np.cos(ecliptic)*np.sin(longitude_ecliptic), radius*np.sin(ecliptic)*np.sin(longitude_ecliptic)]),149597870)
+        return np.multiply(np.array([radius*np.cos(longitude_ecliptic), radius*np.cos(obliquity)*np.sin(longitude_ecliptic), radius*np.sin(obliquity)*np.sin(longitude_ecliptic)]),149597870)
 
 def MOD2GCRF(Julian_Date):
     Julian_Date = Julian_Date-2400000.5
@@ -457,12 +455,12 @@ def KepEqtnE(M, e):
         E = M+e
     E_old = E
     count = 0
-    while(count<10e5):
+    while(count<10e4):
         E = E_old+(M-E_old+e*np.sin(E_old))/(1-e*np.cos(E_old))
-        if E - E_old < 10e-15:
+        count = count+1
+        if (abs(E - E_old) < 10e-6):
             break
-        else:
-            count = count+1
+        E_old = E
     return  E
 
 def PlanetRV(JD_TDB, MJD=False):
@@ -470,10 +468,65 @@ def PlanetRV(JD_TDB, MJD=False):
         JD_TDB = JD_TDB - 2400000.5
     T_TDB = MJDCenturies(JD_TDB)
     M = earth.Mean_Long(T_TDB) - earth.ARG_PERIHELION(T_TDB)
-    arg_perihelion = earth.ARG_PERIHELION(T_TDB) - earth.RAAN(T_TDB)
-    loc = KepEqtnE(M, earth.eccentricty(T_TDB))
+    arg_periapsis = earth.ARG_PERIHELION(T_TDB) - earth.RAAN(T_TDB)
+    nu = KepEqtnE(M, earth.eccentricty(T_TDB))
     # elements - a e i RAAN arg peri nu
-    r, v = elm2cart([earth.semimajor, earth.eccentricty(T_TDB), earth.inclination(T_TDB), earth.RAAN(T_TDB), arg_perihelion, loc], sun.mu, deg=False)
-    r = np.matmul(R1(earth.obliquity(T_TDB)), r)
-    v = np.matmul(R1(earth.obliquity(T_TDB)), v)
+    r, v = elm2cart([earth.semimajor, earth.eccentricty(T_TDB), earth.inclination(T_TDB), earth.RAAN(T_TDB), arg_periapsis, nu], sun.mu, deg=False)
+    r = np.matmul(R1(-earth.obliquity(T_TDB)), r)
+    v = np.matmul(R1(-earth.obliquity(T_TDB)), v)
     return  r, v
+def orbit_prop_3body_RV(r_0, v_0, T0, tF, dT):
+
+    def three_body_orbit(t, Y, mu):
+        dY = np.empty([6, 1])
+        dY[0] = Y[3]
+        dY[1] = Y[4]
+        dY[2] = Y[5]
+        r = lg.norm(Y[0:3])
+        t = t/86400+2451545
+        sun_range, _ = PlanetRV(t)
+        sat2sun = sun_range - Y[0:3]
+        sat2sun_norm = lg.norm(sat2sun)
+        sun_range_norm = lg.norm(sun_range)
+        dY[3] = (-mu * Y[0] / r ** 3) + sun.mu*(sat2sun[0]/((sat2sun_norm)**3)-sun_range[0]/sun_range_norm**3)
+        dY[4] = (-mu * Y[1] / r ** 3) + sun.mu*(sat2sun[1]/((sat2sun_norm)**3)-sun_range[1]/sun_range_norm**3)
+        dY[5] = (-mu * Y[2] / r ** 3) + sun.mu*(sat2sun[2]/((sat2sun_norm)**3)-sun_range[2]/sun_range_norm**3)
+        return dY
+
+
+    def derivFcn(t, y):
+        return three_body_orbit(t, y, earth.mu)
+
+    Y_0 = np.concatenate([r_0, v_0], axis=0)
+    rv = ode(derivFcn)
+
+    #  The integrator type 'dopri5' is the same as MATLAB's ode45()!
+    #  rtol and atol are the relative and absolute tolerances, respectively
+    rv.set_integrator('dopri5', rtol=1e-10, atol=1e-20)
+    rv.set_initial_value(Y_0, T0)
+    output = []
+    output.append(np.insert(Y_0, 0, T0))
+
+    # Run the integrator and populate output array with positions and velocities
+    while rv.successful() and rv.t < tF:  # rv.successful() and
+        rv.integrate(rv.t + dT)
+        output.append(np.insert(rv.y, 0, rv.t))
+
+    if not rv.successful() and rv.t<tF:
+        warnings.warn("Runge Kutta Failed!", RuntimeWarning)
+    #  Convert the output a numpy array for later use
+    output = np.array(output)
+    t = output[:, 0]
+
+    r_vec = np.empty([np.shape(output)[0]-1, 3])
+    v_vec = np.empty([np.shape(output)[0]-1, 3])
+
+    for i in range(np.shape(output)[0]-1):
+        r_vec[i, 0] = output[i, 1]
+        r_vec[i, 1] = output[i, 2]
+        r_vec[i, 2] = output[i, 3]
+        v_vec[i, 0] = output[i, 4]
+        v_vec[i, 1] = output[i, 5]
+        v_vec[i, 2] = output[i, 6]
+    return r_vec, v_vec
+
