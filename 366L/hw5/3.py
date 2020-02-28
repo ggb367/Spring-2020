@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 r, v = sf.PlanetRV(2451545)
-print(np.matmul(sf.J20002GCRF(), r))
+print(np.divide(np.matmul(sf.J20002GCRF(), r), 149597870.7))
 
 # Part B
 
@@ -26,7 +26,7 @@ ax[1].plot(time_series, r_mat[:, 1])
 ax[2].plot(time_series, r_mat[:, 2])
 plt.suptitle("Planet RV Sun Position")
 plt.xlabel("Time [Days]")
-plt.ylabel("Distance [AU]")
+ax[1].set_ylabel("Distance [AU]")
 
 sun_series = np.empty([365,3])
 for j in range(np.size(sun_series, axis=0)):
@@ -51,7 +51,7 @@ ax[1].plot(time_series, r_mat[:, 1] - sun_series[:, 1])
 ax[2].plot(time_series, r_mat[:, 2] - sun_series[:, 2])
 plt.suptitle("Difference in Planet RV and Sun Algorithm")
 plt.xlabel("Time [Days]")
-plt.ylabel("Distance [AU]")
+ax[1].set_ylabel("Distance [AU]")
 
 plt.show()
 

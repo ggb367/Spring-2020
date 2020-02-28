@@ -487,6 +487,7 @@ def orbit_prop_3body_RV(r_0, v_0, T0, tF, dT):
         r = lg.norm(Y[0:3])
         t = t/86400+2451545
         sun_range, _ = PlanetRV(t)
+        sun_range = np.matmul(J20002GCRF(), sun_range)
         sun_range = np.multiply(sun_range, -1)
         sat2sun = sun_range - Y[0:3]
         sat2sun_norm = lg.norm(sat2sun)
