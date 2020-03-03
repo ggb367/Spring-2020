@@ -1,9 +1,10 @@
-import pandas as pd
 import time
+
 import numpy as np
+import pandas as pd
 
 start = time.time()
-file = pd.read_excel('data/part2.xlsx')
+file = pd.read_csv('data/part1.csv')
 end = time.time()
 print("Data Read! It took:", end-start, "seconds")
 new_df = []
