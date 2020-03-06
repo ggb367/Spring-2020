@@ -26,19 +26,19 @@ STRAIN_GAIN = 303
 PRESS_GAIN = 500
 V_ex_strain = 3.3
 V_ex_press = 2.0
-poisson_ratio = (0.3182+0.3487)/2 # average from internet
-young_mod = (13.5+21.4)/2  # from internet
+poisson_ratio = 0.37 #
+young_mod = 354e-2  # what's up with this?
 
 V_balanced = np.abs(strain_denoise - V_unstrained)
 delta_V = np.multiply(V_balanced, STRAIN_GAIN)
 V_r = delta_V/V_ex_strain
 
 # so this is a bit too high, dividing it by five makes it more reasonable
-press_strain = np.divide(np.multiply(4*young_mod*thic, V_r), 5*GF*(r*(1+poisson_ratio)))
+press_strain = np.divide(np.multiply(4*young_mod*thic, V_r), GF*(r*(1+poisson_ratio)))
 
 plt.plot(press_strain)
 pressure_denoise = pressure_denoise- np.average(pressure_denoise[5000:35000]) #set the press to zero
-true_pressure = np.multiply(pressure_denoise, 1000)
+true_pressure = np.multiply(pressure_denoise, PRESS_GAIN)
 plt.plot(true_pressure)
 plt.legend(["Strain", "True"])
 
