@@ -3,13 +3,13 @@ from matplotlib import pyplot as plt
 
 Cdo = 0.023
 K = 0.073
-L = 11000/32.2
+L = 11000
 rho_s = 2.3769e-3
 rho_t = 7.0613e-4
 rho_plus = 1.7083e-4
 h_t = 36089
 h_plus = 65617
-S = 54
+S = 232
 
 velocity = np.arange(100, 900, 20)
 altitude = [10000, 25000, 35000]
