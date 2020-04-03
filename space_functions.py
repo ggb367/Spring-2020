@@ -1,10 +1,11 @@
 import math as m
+import warnings
 
 import numpy as np
 import numpy.linalg as lg
 from scipy.integrate import ode
 from scipy.optimize import fsolve
-import warnings
+
 
 def AU2km(AU):
     return AU*149597870.7
@@ -12,6 +13,7 @@ def AU2km(AU):
 class earth:
     mu = 398600.4418
     semimajor = AU2km(1.000001018)
+    p_srp = 4.57e-9
     def eccentricty(T_TDB):
         return 0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3
 
@@ -534,3 +536,19 @@ def orbit_prop_3body_RV(r_0, v_0, T0, tF, dT):
         v_vec[i, 2] = output[i, 6]
     return r_vec, v_vec
 
+
+def J2J3_Pert(r):
+    r_norm = lg.norm(r)
+    a_2 = np.multiply(3 * MU * J2 * RE ** 2 / (2 * r_norm ** 5),
+                      [r[0] * (5 * (r[2] / r_norm) ** 2 - 1), r[1] * (5 * (r[2] / r_norm) ** 2 - 1),
+                       r[2] * (5 * (r[2] / r_norm) ** 2 - 3)])
+    a_3 = np.multiply(-5 * J3 * MU * RE ** 3 / (2 * r_norm ** 7),
+                      [r[0] * (3 * r[2] - 7 * r[2] ** 3 / r_norm ** 2), r[1] * (3 * r[2] - 7 * r[2] ** 3 / r_norm ** 2),
+                       6 * r[2] ** 2 - 7 * r[2] ** 4 / r_norm ** 2 - (3 / 5) * r_norm ** 2])
+    a_p = a_2 + a_3
+    return a_p
+
+def SRP_Pert(r, r_sun, c_r, A_m):
+    return np.multiply(earth.p_srp * c_r * A_m, np.divide(-1 * r_sun + r, lg.norm(r_sun - r)))
+
+def drag_pert(r):
