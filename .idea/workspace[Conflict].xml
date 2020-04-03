@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ab14e975-f201-4d12-9845-abbb7b29db58" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/366L/hw2/1.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/space_functions.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/366L/hw3/5.py" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="ProjectId" id="1XJqvbR5gqZ0lJCezdjEiAYGVSI" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/366L/hw3/5.py" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Gilbert\Documents\spring20\code\366L\hw2" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Gilbert\Documents\spring20\code\366L" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="5" type="PythonConfigurationType" factoryName="Python">
+      <module name="code" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/366L/hw3" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/366L/hw3/5.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ab14e975-f201-4d12-9845-abbb7b29db58" name="Default Changelist" comment="" />
+      <created>1580774776669</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1580774776669</updated>
+    </task>
+    <task id="LOCAL-00001" summary="update space_functions.py to include time functions">
+      <created>1581460970894</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1581460970894</updated>
+    </task>
+    <task id="LOCAL-00002" summary="finished problem 5">
+      <created>1581465748937</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1581465748937</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="finished hw2" />
+    <MESSAGE value="update space_functions.py to include time functions" />
+    <MESSAGE value="finished problem 5" />
+    <option name="LAST_COMMIT_MESSAGE" value="finished problem 5" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="225" y="68" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1581464086970">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="225" y="68" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.824@0.0.1536.824" timestamp="1581464086970" />
+    <state x="468" y="16" key="CommitChangelistDialog2" timestamp="1581465745049">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="468" y="16" key="CommitChangelistDialog2/0.0.1536.824@0.0.1536.824" timestamp="1581465745049" />
+    <state x="585" y="116" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1581037034174" />
+    <state x="591" y="219" key="FileChooserDialogImpl" timestamp="1581464053938">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="591" y="219" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1581464053938" />
+    <state x="739" y="276" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1581036740840" />
+    <state width="1516" height="211" key="GridCell.Tab.0.bottom" timestamp="1581465795798">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1516" height="211" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1581465795798" />
+    <state width="1900" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1581038422132" />
+    <state width="1516" height="211" key="GridCell.Tab.0.center" timestamp="1581465795798">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1516" height="211" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1581465795798" />
+    <state width="1900" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1581038422132" />
+    <state width="1516" height="211" key="GridCell.Tab.0.left" timestamp="1581465795798">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1516" height="211" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1581465795798" />
+    <state width="1900" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1581038422132" />
+    <state width="1516" height="211" key="GridCell.Tab.0.right" timestamp="1581465795798">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1516" height="211" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1581465795798" />
+    <state width="1900" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1581038422132" />
+    <state x="357" y="112" key="SettingsEditor" timestamp="1581464076414">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="357" y="112" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1581464076414" />
+    <state x="446" y="164" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1581036751338" />
+    <state x="0" y="149" key="Vcs.Push.Dialog.v2" timestamp="1581465753479">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="0" y="149" key="Vcs.Push.Dialog.v2/0.0.1536.824@0.0.1536.824" timestamp="1581465753479" />
+    <state x="171" y="333" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1581461945977">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="171" y="333" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.824@0.0.1536.824" timestamp="1581461945977" />
+  </component>
+</project>
