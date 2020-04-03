@@ -1,51 +1,43 @@
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import space_functions as sf
 
-def orbit_prop_rk(r_0, v_0, T0, tF, dT):  # propogate an orbit about Earth using Runge-Kutta Method
-    def two_body_orbit(t, Y, mu):
-        dY = np.empty([6, 1])
-        dY[0] = Y[3]
-        dY[1] = Y[4]
-        dY[2] = Y[5]
-        r = np.sqrt(Y[0] ** 2 + Y[1] ** 2 + Y[2] ** 2)
-        dY[3] = -mu * Y[0] / r ** 3
-        dY[4] = -mu * Y[1] / r ** 3
-        dY[5] = -mu * Y[2] / r ** 3
-        return dY
+RE = 6378.1363
+MU = 398600.4415
+J2 = 0.0010826267
+J3 = -0.0000025327
 
-    MU = 398600.4415
+class conditions:
+    p_srp = 4.57e-6 * 1000 ** 2
+    C_r = 1.5
+    A_m = 0.1 / 1000 ** 2
+    C_D = 2
+    url = 'https://raw.githubusercontent.com/ggb367/Spring-2020/master/366L/hw7/density.csv'
+    density_table = pd.read_csv(url)
+    epoch = 2458200.5  # days
+# epoch = sf.JD2MJD(epoch)
 
-    def derivFcn(t, y):
-        return two_body_orbit(t, y, MU)
+r_0, v_0 = sf.elm2cart([6800, 0.005, 71, 300, 78, 0], MU)
+r_vec, v_vec = sf.orbit_prop_all_pert(r_0, v_0, 0, 86400, 30, conditions)
+r_bad, v_bad = sf.orbit_prop_rk(r_0, v_0, 0, 86400, 30)
 
-    Y_0 = np.concatenate([r_0, v_0], axis=0)
-    rv = ode(derivFcn)
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot3D(r_vec[:, 0], r_vec[:, 1], r_vec[:, 2])
+ax.plot3D(r_bad[:, 0], r_bad[:, 1], r_bad[:, 2])
 
-    #  The integrator type 'dopri5' is the same as MATLAB's ode45()!
-    #  rtol and atol are the relative and absolute tolerances, respectively
-    rv.set_integrator('dopri5', rtol=1e-10, atol=1e-20)
-    rv.set_initial_value(Y_0, T0)
-    output = []
-    output.append(np.insert(Y_0, 0, T0))
-
-    # Run the integrator and populate output array with positions and velocities
-    while rv.successful() and rv.t < tF:  # rv.successful() and
-        rv.integrate(rv.t + dT)
-        output.append(np.insert(rv.y, 0, rv.t))
-
-    #  Convert the output a numpy array for later use
-    output = np.array(output)
-    t = output[:, 0]
-
-    r_vec = np.empty([np.shape(output)[0]-1, 3])
-    v_vec = np.empty([np.shape(output)[0]-1, 3])
-
-    for i in range(np.shape(output)[0]-1):
-        r_vec[i, 0] = output[i, 1]
-        r_vec[i, 1] = output[i, 2]
-        r_vec[i, 2] = output[i, 3]
-        v_vec[i, 0] = output[i, 4]
-        v_vec[i, 1] = output[i, 5]
-        v_vec[i, 2] = output[i, 6]
-    return r_vec, v_vec
+print("With Perts:")
+print("The Final Position is: ", r_vec[-1, :], "The Final Velocity is: ", v_vec[-1, :])
+print("Without Perts:")
+print("The Final Position is: ", r_bad[-1, :], "The Final Velocity is: ", v_bad[-1, :])
 
 
+time_series = np.arange(0, 24, 24/2880)
+fig, ax = plt.subplots(3, sharex=True)
+ax[0].plot(time_series, r_vec[:, 0]-r_bad[:, 0])
+ax[1].plot(time_series, r_vec[:, 1]-r_bad[:, 1])
+ax[2].plot(time_series, r_vec[:, 2]-r_bad[:, 2])
+
+
+plt.show()

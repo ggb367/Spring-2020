@@ -14,6 +14,9 @@ class earth:
     mu = 398600.4418
     semimajor = AU2km(1.000001018)
     p_srp = 4.57e-9
+    J2 = 0.1082635854e-2
+    J3 = -0.2532435346e-5
+    RE = 6378.1363
     def eccentricty(T_TDB):
         return 0.01670862-0.000042037*T_TDB-0.0000001236*T_TDB**2+0.00000000004*T_TDB**3
 
@@ -539,16 +542,91 @@ def orbit_prop_3body_RV(r_0, v_0, T0, tF, dT):
 
 def J2J3_Pert(r):
     r_norm = lg.norm(r)
-    a_2 = np.multiply(3 * MU * J2 * RE ** 2 / (2 * r_norm ** 5),
+    a_2 = np.multiply(3 * earth.mu * earth.J2 * earth.RE ** 2 / (2 * r_norm ** 5),
                       [r[0] * (5 * (r[2] / r_norm) ** 2 - 1), r[1] * (5 * (r[2] / r_norm) ** 2 - 1),
                        r[2] * (5 * (r[2] / r_norm) ** 2 - 3)])
-    a_3 = np.multiply(-5 * J3 * MU * RE ** 3 / (2 * r_norm ** 7),
+    a_3 = np.multiply(-5 * earth.J3 * earth.mu * earth.RE ** 3 / (2 * r_norm ** 7),
                       [r[0] * (3 * r[2] - 7 * r[2] ** 3 / r_norm ** 2), r[1] * (3 * r[2] - 7 * r[2] ** 3 / r_norm ** 2),
                        6 * r[2] ** 2 - 7 * r[2] ** 4 / r_norm ** 2 - (3 / 5) * r_norm ** 2])
     a_p = a_2 + a_3
-    return a_p
+    return np.array(a_p)
 
-def SRP_Pert(r, r_sun, c_r, A_m):
-    return np.multiply(earth.p_srp * c_r * A_m, np.divide(-1 * r_sun + r, lg.norm(r_sun - r)))
+def SRP_Pert(r, r_sun, C_r, A_m):
+    return np.array(np.multiply(earth.p_srp * C_r * A_m, np.divide(-1 * r_sun + r, lg.norm(r_sun - r))))
 
-def drag_pert(r):
+def drag_pert(r, v, density_table, C_D, A_m):
+    if isinstance(r, np.ndarray) or isinstance(r, list):
+        radius = np.linalg.norm(r)
+
+    base_alt = np.array(density_table['Base Altitude'])
+    scl_hgt = np.array(density_table['Scale Height'])
+    nom_dens = np.multiply(np.array(density_table['Nominal Density']), 1000**3)
+    del density_table
+    idx = ((np.divide(np.abs(base_alt - radius), 10)).astype(int)).argmin()  # return the base altitude index
+    density = nom_dens[idx]*np.exp(-(radius-base_alt[idx])/scl_hgt[idx])
+    return np.array(np.multiply(-.5*C_D*A_m*density*lg.norm(v), v))
+def sun_3body_pert(t, r):
+    t = t / 86400 + 2451545
+    sun_range, _ = PlanetRV(t)
+    sun_range = np.matmul(J20002GCRF(), sun_range)
+    # sun_range = np.multiply(sun_range, -1)
+    sat2sun = sun_range - r
+    sat2sun_norm = lg.norm(sat2sun)
+    sun_range_norm = lg.norm(sun_range)
+    return sat2sun_norm, sat2sun, sun_range_norm, sun_range
+
+def orbit_prop_all_pert(r_0, v_0, T0, tF, dT, conds):
+
+    def three_body_orbit(t, Y, mu):
+        dY = np.empty([6, 1])
+        dY[0] = Y[3]
+        dY[1] = Y[4]
+        dY[2] = Y[5]
+        r = lg.norm(Y[0:3])
+        t = t/86400+conds.epoch
+        sat2sun_norm, sat2sun, sun_range_norm, sun_range = sun_3body_pert(t, Y[0:3])
+        a_d = drag_pert(Y[0:3], [Y[3:6]], conds.density_table, conds.C_D, conds.A_m)
+        a_j = J2J3_Pert(Y[0:3])
+        a_srp = SRP_Pert(Y[0:3], sun_range, conds.C_r, conds.A_m)
+        a_other = np.squeeze(a_d+a_srp+a_j, axis=0)
+        dY[3] = (-mu * Y[0] / r ** 3) + sun.mu*(sat2sun[0]/((sat2sun_norm)**3)-sun_range[0]/sun_range_norm**3) + a_other[0]
+        dY[4] = (-mu * Y[1] / r ** 3) + sun.mu*(sat2sun[1]/((sat2sun_norm)**3)-sun_range[1]/sun_range_norm**3) + a_other[1]
+        dY[5] = (-mu * Y[2] / r ** 3) + sun.mu*(sat2sun[2]/((sat2sun_norm)**3)-sun_range[2]/sun_range_norm**3) + a_other[2]
+        return dY
+
+
+    def derivFcn(t, y):
+        return three_body_orbit(t, y, earth.mu)
+
+    Y_0 = np.concatenate([r_0, v_0], axis=0)
+    rv = ode(derivFcn)
+
+    #  The integrator type 'dopri5' is the same as MATLAB's ode45()!
+    #  rtol and atol are the relative and absolute tolerances, respectively
+    rv.set_integrator('dopri5', rtol=1e-10, atol=1e-20)
+    rv.set_initial_value(Y_0, T0)
+    output = []
+    output.append(np.insert(Y_0, 0, T0))
+
+    # Run the integrator and populate output array with positions and velocities
+    while rv.successful() and rv.t < tF:  # rv.successful() and
+        rv.integrate(rv.t + dT)
+        output.append(np.insert(rv.y, 0, rv.t))
+
+    if not rv.successful() and rv.t<tF:
+        warnings.warn("Runge Kutta Failed!", RuntimeWarning)
+    #  Convert the output a numpy array for later use
+    output = np.array(output)
+    t = output[:, 0]
+
+    r_vec = np.empty([np.shape(output)[0]-1, 3])
+    v_vec = np.empty([np.shape(output)[0]-1, 3])
+
+    for i in range(np.shape(output)[0]-1):
+        r_vec[i, 0] = output[i, 1]
+        r_vec[i, 1] = output[i, 2]
+        r_vec[i, 2] = output[i, 3]
+        v_vec[i, 0] = output[i, 4]
+        v_vec[i, 1] = output[i, 5]
+        v_vec[i, 2] = output[i, 6]
+    return r_vec, v_vec
