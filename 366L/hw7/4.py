@@ -16,7 +16,6 @@ class conditions:
     url = 'https://raw.githubusercontent.com/ggb367/Spring-2020/master/366L/hw7/density.csv'
     density_table = pd.read_csv(url)
     epoch = 2458200.5  # days
-# epoch = sf.JD2MJD(epoch)
 
 r_0, v_0 = sf.elm2cart([6800, 0.005, 71, 300, 78, 0], MU)
 r_vec, v_vec = sf.orbit_prop_all_pert(r_0, v_0, 0, 86400, 30, conditions)
@@ -36,8 +35,13 @@ print("The Final Position is: ", r_bad[-1, :], "The Final Velocity is: ", v_bad[
 time_series = np.arange(0, 24, 24/2880)
 fig, ax = plt.subplots(3, sharex=True)
 ax[0].plot(time_series, r_vec[:, 0]-r_bad[:, 0])
+ax[0].set_title("X Pos Difference")
 ax[1].plot(time_series, r_vec[:, 1]-r_bad[:, 1])
+ax[1].set_title("Y Pos Difference")
 ax[2].plot(time_series, r_vec[:, 2]-r_bad[:, 2])
-
+ax[2].set_title("Z Pos Difference")
+plt.suptitle("Difference in Position between Full Model and Kepler Model")
+plt.xlabel("Time (Hours)")
+ax[1].set_ylabel("Distance [km]")
 
 plt.show()

@@ -42,7 +42,7 @@ plt.plot(press_strain)
 pressure_denoise = pressure_denoise- np.average(pressure_denoise[5000:35000]) #set the press to zero
 true_pressure = np.multiply(pressure_denoise, PRESS_GAIN*V_ex_press)
 pressure_df = pd.DataFrame(data={'True Pressure': true_pressure, 'Strain Pressure': press_strain})
-pressure_df.to_csv('data/calculated_press.csv')
+pressure_df.to_csv('data_td/calculated_press.csv')
 plt.plot(true_pressure)
 plt.legend(["Strain", "True"])
 plt.xlabel("Data")

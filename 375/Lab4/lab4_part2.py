@@ -30,7 +30,7 @@ strain = np.abs(np.divide(np.multiply(-4,V_r),(GF*(1+np.multiply(2, V_r)))))
 press = (np.divide(np.multiply(young_mod*thic, strain), radius*(1-poisson_ratio/2)))
 
 part2_df = pd.DataFrame(data={'Strain': strain, 'Pressure': press})
-part2_df.to_csv('data/part2_calculated.csv')
+part2_df.to_csv('data_td/part2_calculated.csv')
 
 plt.plot(strain)
 plt.title("")

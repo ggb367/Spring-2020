@@ -10,7 +10,7 @@ for path, subdirs, files in os.walk("Data/Part 2"):
     for name in files:
         file_names.append(os.path.join(path, name))
 
-#get data from each file
+#get data_td from each file
 GF = 2.05
 first = True
 count = 0

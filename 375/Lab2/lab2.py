@@ -17,14 +17,14 @@ def find_nearest(array, value):
 time_array = num_23_c["Time"]  # I think this is in MJD
 time_array = np.array((time_array-time_array[0])*86400) #Normalization to seconds since epoch
 
-# Get data
+# Get data_td
 
 thermocouple = np.array(num_23_c["Thermocouple"])
 thermistor = np.array(num_23_c["Thermistor"])
 r_t = np.divide(np.multiply(1500, thermistor), 5-thermistor)
 T = np.power(a+np.multiply(b, np.log(r_t))+np.multiply(c, np.power(np.log(r_t), 3)), -1)
 
-#plot data
+#plot data_td
 plt.figure()
 plt.plot(time_array, thermocouple)
 
@@ -46,7 +46,7 @@ c = 0.000357
 # thermistor_timeconstant = time_array[idx_tc_istor]
 # print("thermistor time constant:")
 # print(thermistor_timeconstant)
-# print("thermocouple time constant:")   # Important to note that this is an estimate as data is discrete and there are inconsitencies
+# print("thermocouple time constant:")   # Important to note that this is an estimate as data_td is discrete and there are inconsitencies
 # print(thermocouple_timeconstant)
 #
 # # Time to steady state

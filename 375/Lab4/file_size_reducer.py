@@ -14,5 +14,5 @@ for index, row in file.iterrows():
         new_df.append(row)
 print("reduction complete, writing to csv....")
 new_df = pd.DataFrame(new_df)
-new_df.to_csv('data/part2_reduced.csv')
+new_df.to_csv('data_td/part2_reduced.csv')
 print("Operation Complete!")
